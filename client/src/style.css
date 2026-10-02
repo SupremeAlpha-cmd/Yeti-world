@@ -48,7 +48,7 @@ html, body {
 .landing-hero { text-align: center; padding: 48px 0 40px; }
 .landing-logo { width: 150px; height: 150px; border-radius: 36px; margin-bottom: 16px; border: 4px solid var(--line); box-shadow: 0 8px 0 rgba(6,8,20,.6); animation: hero-bob 3s ease-in-out infinite; }
 @keyframes hero-bob { 0%,100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-10px) rotate(2deg); } }
-.landing-hero h1 { font-family: "Titan One", ui-rounded, system-ui, sans-serif; font-size: 52px; letter-spacing: 2px; margin: 0 0 12px; text-shadow: 0 4px 0 rgba(6,8,20,.7), 0 0 40px rgba(94,200,248,.3); }
+.landing-hero h1 { font-family: "Titan One", ui-rounded, system-ui, sans-serif; font-size: clamp(38px, 10vw, 52px); letter-spacing: 2px; margin: 0 0 12px; text-shadow: 0 4px 0 rgba(6,8,20,.7), 0 0 40px rgba(94,200,248,.3); }
 .landing-tag { color: var(--muted); font-size: 17px; line-height: 1.6; max-width: 520px; margin: 0 auto 28px; }
 .landing-cta { text-align: center; padding: 48px 0 16px; }
 
@@ -200,9 +200,26 @@ input:focus { border-color: var(--gold); }
 }
 #yeti-bubble .yn { color: var(--gold); font-size: 11px; letter-spacing: 2px; display: block; margin-bottom: 2px; }
 @keyframes bubble-in { from { opacity: 0; transform: translateY(8px) scale(.95); } }
-@media (hover: hover) and (pointer: fine) {
-  #screen-game::after {
+@media (hover: hover) and (pointer: fine) {  #screen-game::after {
     content: "WASD / arrows to move"; position: absolute; bottom: 10px; left: 0; right: 0;
     text-align: center; color: var(--muted); font-size: 12px; z-index: 4; pointer-events: none;
   }
+}
+
+/* ---------- mobile ---------- */
+@media (max-width: 480px) {
+  #topnav { padding: 10px 12px; }
+  .nav-brand span { display: none; }
+  .nav-link { padding: 8px 10px; font-size: 13px; }
+  .landing-hero { padding: 32px 0 28px; }
+  .landing-logo { width: 110px; height: 110px; border-radius: 28px; }
+  .landing-tag { font-size: 15px; }
+  .page { padding: 28px 16px 48px; }
+  .page h2 { font-size: 24px; }
+  .facts { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .fact { padding: 12px; }
+  .fact b { font-size: 14px; }
+  .how-step { padding: 12px; }
+  .btn.big { font-size: 16px; padding: 13px 28px; }
+  .shot figcaption { font-size: 13px; }
 }
