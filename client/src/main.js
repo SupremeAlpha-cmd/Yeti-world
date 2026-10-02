@@ -145,6 +145,8 @@ $('btn-quick').addEventListener('click', () => join({ mode: 'quick' }));
 
 // ---------- solo demo ----------
 let demoBound = false;
+const demosEnabled = import.meta.env.VITE_DEMOS_ENABLED !== '0';
+if (!demosEnabled) $('btn-demo').style.display = 'none';
 $('btn-demo').addEventListener('click', () => {
   sfx.unlock();
   setDemoAnimal(myAnimal);
