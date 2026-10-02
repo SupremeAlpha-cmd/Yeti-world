@@ -206,7 +206,21 @@ input:focus { border-color: var(--gold); }
   }
 }
 
-/* ---------- mobile ---------- */
+/* ---------- ape-style pop cards ---------- */
+.cards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 4px 0 8px; }
+.pop-card { border-radius: 24px; padding: 18px 16px; text-align: center; border: 3px solid rgba(10,12,36,.9); box-shadow: 0 5px 0 rgba(6,8,20,.65); transition: transform .12s; }
+.pop-card:nth-child(odd) { transform: rotate(-1.2deg); }
+.pop-card:nth-child(even) { transform: rotate(1.2deg); }
+.pop-card:active { transform: rotate(0) scale(.97); }
+.pop-card.amber { background: linear-gradient(160deg, #fde68a, #fbbf24); }
+.pop-card.blue { background: linear-gradient(160deg, #a5e3ff, #5ec8f8); }
+.pop-card.pink { background: linear-gradient(160deg, #ffc7ec, #ff8ad8); }
+.pop-card.green { background: linear-gradient(160deg, #b8f5cd, #5ef08a); }
+.pop-card.gold { background: linear-gradient(160deg, #fff3b0, #ffd93d); }
+.pop-emoji { font-size: 34px; display: block; margin-bottom: 8px; }
+.pop-card b { display: block; font-size: 17px; color: #1a1440; margin-bottom: 4px; }
+.pop-card p { margin: 0; font-size: 13px; color: #3d3670; line-height: 1.4; font-weight: 600; }
+@media (max-width: 480px) { .cards { gap: 10px; } .pop-card { padding: 14px 10px; border-radius: 20px; } .pop-emoji { font-size: 28px; } .pop-card b { font-size: 15px; } }
 @media (max-width: 480px) {
   #topnav { padding: 10px 12px; }
   .nav-brand span { display: none; }
