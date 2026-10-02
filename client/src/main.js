@@ -91,6 +91,10 @@ const touch = { active: false, tx: 0, ty: 0 };
 let lastInputSend = 0;
 
 // ---------- home ----------
+$('btn-play').addEventListener('click', () => {
+  sfx.unlock();
+  $('play-panel').scrollIntoView({ behavior: 'smooth' });
+});
 $('btn-quick').addEventListener('click', () => join({ mode: 'quick' }));
 $('btn-join-code').addEventListener('click', () => {
   join({ mode: 'code', code: $('code-input').value.trim() });

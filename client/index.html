@@ -23,12 +23,23 @@
 </head>
 <body>
   <div id="app">
-    <!-- HOME -->
+    <!-- HOME / LANDING -->
     <section id="screen-home" class="screen active">
       <div class="hero">
         <div class="logo-row"><img src="/logo.png" alt="Yeti World" class="site-logo" /></div>
         <h1>YETI&nbsp;WORLD</h1>
-        <p class="tagline">The yeti runs the arena. Pick your animal.<br />Dodge the memecoins. Last one standing wins.</p>
+        <p class="tagline">The onchain survival arena. Pick your animal, dodge the memecoins raining from the sky — one hit and you're out. Last one standing takes the pot.</p>
+        <div class="btn-row">
+          <button id="btn-play" class="btn primary big">Enter the arena</button>
+        </div>
+        <div class="how">
+          <div class="how-step"><span class="how-n">1</span><div><b>Connect wallet</b><span>Link your wallet on Robinhood Chain.</span></div></div>
+          <div class="how-step"><span class="how-n">2</span><div><b>Pay entry</b><span>Your USDG goes into the prize pot.</span></div></div>
+          <div class="how-step"><span class="how-n">3</span><div><b>Survive</b><span>Dodge the memecoins. Winner takes 95% of the pot + YETI.</span></div></div>
+        </div>
+      </div>
+      <div class="hero play-panel" id="play-panel">
+        <p class="label">PLAY NOW</p>
         <input id="name-input" maxlength="16" placeholder="Your name" autocomplete="off" />
         <div id="wallet-row" class="join-row hidden">
           <button id="btn-wallet" class="btn">Connect wallet</button>
@@ -37,17 +48,14 @@
         <div class="btn-row">
           <button id="btn-quick" class="btn primary">Quick match</button>
         </div>
+        <p class="divider"><span>or join a private room</span></p>
         <div class="join-row">
           <input id="code-input" maxlength="4" placeholder="CODE" autocomplete="off" />
           <button id="btn-join-code" class="btn">Join</button>
         </div>
+        <p class="hint">Playing with friends? Enter the 4-letter room code they shared to join their private match.</p>
         <p id="home-error" class="error"></p>
         <p class="hint" id="home-hint">Dodge the market. Last animal standing takes the pot.</p>
-        <div class="how">
-          <div class="how-step"><span class="how-n">1</span><div><b>Connect wallet</b><span>Link your wallet on Robinhood Chain.</span></div></div>
-          <div class="how-step"><span class="how-n">2</span><div><b>Pay entry</b><span>Your USDG goes into the prize pot.</span></div></div>
-          <div class="how-step"><span class="how-n">3</span><div><b>Survive</b><span>Dodge the memecoins. Winner takes 95% of the pot + YETI.</span></div></div>
-        </div>
       </div>
     </section>
 

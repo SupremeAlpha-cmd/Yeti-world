@@ -21,6 +21,7 @@ html, body {
 #app { height: 100dvh; display: flex; flex-direction: column; position: relative; }
 .screen { display: none; flex: 1; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
 .screen.active { display: flex; }
+#screen-home.active { justify-content: flex-start; overflow-y: auto; padding-top: 48px; padding-bottom: 48px; }
 
 /* ---------- home ---------- */
 .hero { text-align: center; max-width: 420px; width: 100%; }
@@ -68,6 +69,10 @@ input:focus { border-color: var(--gold); }
 .how-n { flex: none; width: 26px; height: 26px; border-radius: 50%; background: rgba(125,211,252,.12); color: #7dd3fc; font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; }
 .how-step div b { display: block; font-size: 14px; }
 .how-step div span { color: var(--muted); font-size: 13px; line-height: 1.4; }
+.btn.big { font-size: 18px; padding: 14px 36px; }
+.play-panel { margin-top: 40px; padding-top: 32px; border-top: 1px solid var(--line); }
+.divider { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 12px; letter-spacing: 2px; margin: 20px 0 12px; }
+.divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--line); }
 
 /* ---------- lobby ---------- */
 .panel { width: 100%; max-width: 480px; background: rgba(16,24,40,.85); border: 1px solid var(--line); border-radius: 20px; padding: 24px; backdrop-filter: blur(8px); }
