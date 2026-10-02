@@ -1,6 +1,7 @@
 import { GameSocket } from './net.js';
 import { createRenderer, ANIMALS, ANIMAL_EMOJI, ANIMAL_COLORS } from './game.js';
 import { sfx, toggleMute, isMuted } from './audio.js';
+import { startDemo, stopDemo, setDemoAnimal, demoTouchHandlers } from './demo.js';
 
 // ---------- dom helper (must come first) ----------
 const $ = (id) => document.getElementById(id);
@@ -15,7 +16,10 @@ function showView(name) {
   if (name === 'landing' && !factsLoaded) loadFacts();
   window.scrollTo(0, 0);
 }
-document.querySelectorAll('[data-view]').forEach((b) => b.addEventListener('click', () => showView(b.dataset.view)));
+document.querySelectorAll('[data-view]').forEach((b) => b.addEventListener('click', () => {
+  if (b.dataset.view !== 'play') stopDemo();
+  showView(b.dataset.view);
+}));
 
 async function loadFacts() {
   factsLoaded = true;
@@ -83,7 +87,7 @@ const ELIM_QUIPS = [
 const pick = (a) => a[(Math.random() * a.length) | 0];
 
 // ---------- dom ----------
-const screens = { home: $('screen-home'), lobby: $('screen-lobby'), game: $('screen-game') };
+const screens = { home: $('screen-home'), lobby: $('screen-lobby'), game: $('screen-game'), demo: $('screen-demo') };
 function show(name) {
   for (const k in screens) screens[k].classList.toggle('active', k === name);
 }
@@ -138,6 +142,32 @@ let lastInputSend = 0;
 
 // ---------- home ----------
 $('btn-quick').addEventListener('click', () => join({ mode: 'quick' }));
+
+// ---------- solo demo ----------
+let demoBound = false;
+$('btn-demo').addEventListener('click', () => {
+  sfx.unlock();
+  setDemoAnimal(myAnimal);
+  $('demo-end').classList.add('hidden');
+  show('demo');
+  if (!demoBound) { demoBound = true; demoTouchHandlers($('demo-canvas')); }
+  startDemo($('demo-canvas'), (survived) => {
+    $('demo-sub').textContent = `You survived ${document.getElementById('demo-time').textContent}. One touch and you're out!`;
+    $('demo-end').classList.remove('hidden');
+  });
+});
+$('btn-demo-again').addEventListener('click', () => {
+  $('demo-end').classList.add('hidden');
+  setDemoAnimal(myAnimal);
+  startDemo($('demo-canvas'), () => {
+    $('demo-sub').textContent = `You survived ${document.getElementById('demo-time').textContent}. One touch and you're out!`;
+    $('demo-end').classList.remove('hidden');
+  });
+});
+$('btn-demo-leave').addEventListener('click', () => {
+  stopDemo();
+  show('home');
+});
 $('btn-join-code').addEventListener('click', () => {
   join({ mode: 'code', code: $('code-input').value.trim() });
 });

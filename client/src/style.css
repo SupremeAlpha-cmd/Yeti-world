@@ -223,6 +223,9 @@ input:focus { border-color: var(--gold); }
 .pop-num { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%; background: rgba(26,20,64,.12); color: #1a1440; font-weight: 800; font-size: 17px; margin-bottom: 8px; border: 2px solid rgba(26,20,64,.25); }
 .pop-card b { display: block; font-size: 17px; color: #1a1440; margin-bottom: 4px; }
 .pop-card p { margin: 0; font-size: 13px; color: #3d3670; line-height: 1.4; font-weight: 600; }
+#hud-demo { display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 900px; padding: 8px 4px; font-weight: 800; font-size: 16px; }
+#hud-demo .hint { margin: 0; }
+#demo-canvas { width: 100%; max-width: 900px; aspect-ratio: 900/640; border-radius: 20px; border: 3px solid var(--line); background: #0a0d18; touch-action: none; }
 @media (max-width: 480px) { .cards { gap: 10px; } .pop-card { padding: 14px 10px; border-radius: 20px; } .pop-emoji { font-size: 28px; } .pop-card b { font-size: 15px; } }
 @media (max-width: 480px) {
   #topnav { padding: 10px 12px; }
