@@ -2,6 +2,9 @@ import { GameSocket } from './net.js';
 import { createRenderer, ANIMALS, ANIMAL_EMOJI, ANIMAL_COLORS } from './game.js';
 import { sfx, toggleMute, isMuted } from './audio.js';
 
+// ---------- dom helper (must come first) ----------
+const $ = (id) => document.getElementById(id);
+
 // ---------- views ----------
 const views = { landing: $('view-landing'), app: $('view-app'), play: $('view-play') };
 let winnersLoaded = false, factsLoaded = false;
@@ -80,7 +83,6 @@ const ELIM_QUIPS = [
 const pick = (a) => a[(Math.random() * a.length) | 0];
 
 // ---------- dom ----------
-const $ = (id) => document.getElementById(id);
 const screens = { home: $('screen-home'), lobby: $('screen-lobby'), game: $('screen-game') };
 function show(name) {
   for (const k in screens) screens[k].classList.toggle('active', k === name);
