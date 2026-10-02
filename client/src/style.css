@@ -1,10 +1,10 @@
 :root {
-  --bg: #0d1030;
-  --bg2: #171b4d;
-  --panel: #1c2158;
-  --line: #2e3480;
+  --bg: #1c1c21;
+  --bg2: #26262e;
+  --panel: #2b2b34;
+  --line: #3d3d4a;
   --text: #ffffff;
-  --muted: #a5b0e8;
+  --muted: #a8a8b8;
   --gold: #ffd93d;
   --green: #5ef08a;
   --red: #ff6b8a;
@@ -16,10 +16,10 @@
 html, body {
   margin: 0; padding: 0; height: 100%;
   background:
-    radial-gradient(600px 400px at 15% 10%, rgba(255,138,216,.12) 0%, transparent 60%),
-    radial-gradient(700px 500px at 85% 20%, rgba(94,200,248,.14) 0%, transparent 60%),
-    radial-gradient(900px 700px at 50% 110%, rgba(120,80,255,.18) 0%, transparent 60%),
-    linear-gradient(180deg, #12153d 0%, var(--bg) 100%) fixed;
+    radial-gradient(600px 400px at 15% 10%, rgba(255,217,61,.07) 0%, transparent 60%),
+    radial-gradient(700px 500px at 85% 20%, rgba(255,255,255,.05) 0%, transparent 60%),
+    radial-gradient(900px 700px at 50% 110%, rgba(0,0,0,.35) 0%, transparent 60%),
+    linear-gradient(180deg, #232329 0%, var(--bg) 100%) fixed;
   color: var(--text);
   font-family: ui-rounded, "SF Pro Rounded", "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
   overscroll-behavior: none;
@@ -218,6 +218,7 @@ input:focus { border-color: var(--gold); }
 .pop-card.green { background: linear-gradient(160deg, #b8f5cd, #5ef08a); }
 .pop-card.gold { background: linear-gradient(160deg, #fff3b0, #ffd93d); }
 .pop-emoji { font-size: 34px; display: block; margin-bottom: 8px; }
+.pop-num { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%; background: rgba(26,20,64,.12); color: #1a1440; font-weight: 800; font-size: 17px; margin-bottom: 8px; border: 2px solid rgba(26,20,64,.25); }
 .pop-card b { display: block; font-size: 17px; color: #1a1440; margin-bottom: 4px; }
 .pop-card p { margin: 0; font-size: 13px; color: #3d3670; line-height: 1.4; font-weight: 600; }
 @media (max-width: 480px) { .cards { gap: 10px; } .pop-card { padding: 14px 10px; border-radius: 20px; } .pop-emoji { font-size: 28px; } .pop-card b { font-size: 15px; } }
