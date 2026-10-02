@@ -1,6 +1,11 @@
 import { GameSocket } from './net.js';
 import { createRenderer, ANIMALS, ANIMAL_EMOJI, ANIMAL_COLORS } from './game.js';
 import { sfx, toggleMute, isMuted } from './audio.js';
+import {
+  CHAIN_ENABLED, ARENA_ADDRESS, USDG_ADDRESS,
+  hasWallet, connectWallet, getAccount, fmtUsdg,
+  getAllowance, approveUsdg, joinOnchain,
+} from './chain.js';
 
 const PLAYER_SPEED = 300;
 const PLAYER_R = 17;
@@ -40,12 +45,43 @@ function show(name) {
 // ---------- state ----------
 let sock = null;
 let myId = null, myName = 'Player', myAnimal = 'ape';
+let myWallet = null;            // onchain address (chain mode)
+let onchainLobby = null;        // { lobbyId, entryFee } from server
+let enteredOnchain = false;
 let room = null;
 let gameActive = false;
 let myAlive = true;
 let lastCountdown = -1;
 let renderer = null;
 const canvas = $('game-canvas');
+
+// ---------- chain mode setup ----------
+if (CHAIN_ENABLED) {
+  $('wallet-row').classList.remove('hidden');
+  $('home-hint').textContent = 'Onchain mode — connect wallet, pay entry in USDG, winner takes the pot.';
+  if (!ARENA_ADDRESS || !USDG_ADDRESS) {
+    $('home-error').textContent = 'Chain config missing (VITE_ARENA_ADDRESS / VITE_USDG_ADDRESS).';
+  }
+}
+
+$('btn-wallet').addEventListener('click', async () => {
+  $('home-error').textContent = '';
+  if (!hasWallet()) {
+    $('home-error').textContent = 'No injected wallet found.';
+    return;
+  }
+  $('btn-wallet').disabled = true;
+  $('btn-wallet').textContent = 'Connecting…';
+  try {
+    myWallet = await connectWallet();
+    $('wallet-addr').textContent = myWallet.slice(0, 6) + '…' + myWallet.slice(-4);
+    $('btn-wallet').textContent = 'Connected ✓';
+  } catch (e) {
+    $('home-error').textContent = 'Wallet connection failed: ' + (e.message || e);
+    $('btn-wallet').disabled = false;
+    $('btn-wallet').textContent = 'Connect wallet';
+  }
+});
 
 // prediction state
 const me = { x: 450, y: 560 };
@@ -67,6 +103,22 @@ async function join(opts) {
   sfx.unlock();
   myName = ($('name-input').value.trim() || 'Player').slice(0, 16);
   $('home-error').textContent = '';
+  // chain mode: wallet must be connected first
+  if (CHAIN_ENABLED && !myWallet) {
+    if (!hasWallet()) {
+      $('home-error').textContent = 'Connect a wallet first (button above).';
+      return;
+    }
+    try {
+      myWallet = await connectWallet();
+      $('wallet-addr').textContent = myWallet.slice(0, 6) + '…' + myWallet.slice(-4);
+      $('btn-wallet').textContent = 'Connected ✓';
+      $('btn-wallet').disabled = true;
+    } catch (e) {
+      $('home-error').textContent = 'Wallet connection failed: ' + (e.message || e);
+      return;
+    }
+  }
   $('btn-quick').disabled = true;
   try {
     sock = new GameSocket();
@@ -77,7 +129,9 @@ async function join(opts) {
       }
     };
     await sock.connect();
-    sock.send({ t: 'join', mode: opts.mode, code: opts.code, name: myName });
+    const hello = { t: 'join', mode: opts.mode, code: opts.code, name: myName };
+    if (myWallet) hello.wallet = myWallet;
+    sock.send(hello);
   } catch (e) {
     $('home-error').textContent = 'Could not reach the game server.';
     $('btn-quick').disabled = false;
@@ -89,9 +143,50 @@ function resetToHome(err) {
   yetiHide();
   if (sock) { sock.close(); sock = null; }
   myId = null;
+  onchainLobby = null;
+  enteredOnchain = false;
+  $('entry-panel').classList.add('hidden');
   show('home');
   $('btn-quick').disabled = false;
   if (err) $('home-error').textContent = err;
+}
+
+// ---------- onchain entry ----------
+$('btn-enter').addEventListener('click', async () => {
+  if (!onchainLobby || enteredOnchain) return;
+  const btn = $('btn-enter');
+  const st = $('entry-status');
+  btn.disabled = true;
+  try {
+    st.textContent = 'Checking USDG allowance…';
+    const fee = BigInt(onchainLobby.entryFee);
+    const allow = await getAllowance();
+    if (allow < fee) {
+      st.textContent = 'Approve USDG in your wallet…';
+      await approveUsdg(fee);
+      st.textContent = 'Approved ✓';
+    }
+    st.textContent = 'Joining lobby onchain — confirm in wallet…';
+    const { hash } = await joinOnchain(onchainLobby.lobbyId);
+    enteredOnchain = true;
+    st.textContent = 'Paid ✓ waiting for others…';
+    yetiSay('Entry paid! Waiting for the pack. 🐾', 2400);
+    sock && sock.send({ t: 'onchain_ready', lobbyId: onchainLobby.lobbyId, tx: hash });
+  } catch (e) {
+    st.textContent = 'Failed: ' + (e.shortMessage || e.message || e);
+    btn.disabled = false;
+  }
+});
+
+function showEntryPanel(lobbyId, entryFee) {
+  onchainLobby = { lobbyId, entryFee: entryFee.toString() };
+  enteredOnchain = false;
+  $('entry-panel').classList.remove('hidden');
+  $('entry-fee').textContent = `Entry: ${fmtUsdg(entryFee)} (winner takes 95%)`;
+  $('entry-status').textContent = '';
+  $('btn-enter').disabled = false;
+  $('btn-enter').textContent = 'Approve USDG & Join';
+  yetiSay(`Entry is ${fmtUsdg(entryFee)} — pay to play! 💰`, 3200);
 }
 
 // ---------- lobby ----------
@@ -292,12 +387,23 @@ function onMessage(m) {
       yetiSay('Run it back! 🔁', 2200);
     }
     if (screens.lobby.classList.contains('active')) renderLobby();
+  } else if (m.t === 'onchain_lobby') {
+    showEntryPanel(m.lobbyId, m.entryFee);
+  } else if (m.t === 'onchain_timeout') {
+    onchainLobby = null;
+    enteredOnchain = false;
+    $('entry-panel').classList.add('hidden');
+    yetiSay('Someone took too long to pay — back to the lobby. ⏳', 3000);
   } else if (m.t === 'error') {
     resetToHome(m.msg);
   } else if (m.t === 'start') {
     room = m.room;
     gameActive = true;
     myAlive = true;
+    // hide entry panel — we're in
+    $('entry-panel').classList.add('hidden');
+    onchainLobby = null;
+    enteredOnchain = false;
     keysDown.clear(); recomputeKeys();
     touch.active = false;
     const meInfo = room.players.find((p) => p.id === myId);

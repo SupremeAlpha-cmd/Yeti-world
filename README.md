@@ -8,6 +8,42 @@ then memecoins (`$RUG`, `$HONEYPOT`, `$DUMPIT`…) rain from the top of the aren
 One hit eliminates you — last animal standing wins. A yeti game master hosts the
 arena and calls the action.
 
+## Onchain mode (testnet)
+
+Set `CHAIN_ENABLED=1` to play for real stakes on Robinhood testnet (chain 46630).
+The money lives onchain (YetiArena); the game itself still runs on this server,
+which acts as the authorized referee.
+
+**Server env:**
+```bash
+CHAIN_ENABLED=1
+ARENA_ADDRESS=0xe3cc3221c1444169a0218954b3f76de72968dd23
+REFEREE_KEY_PATH=/path/to/referee.key   # NEVER commit
+ENTRY_FEE_USDG=5000000                  # $5 entry (6-decimal USDG)
+ONCHAIN_WAIT_SECONDS=120                # payment window per round
+PORT=8080
+```
+
+**Client build env:**
+```bash
+VITE_CHAIN_ENABLED=1
+VITE_ARENA_ADDRESS=0xe3cc3221c1444169a0218954b3f76de72968dd23
+VITE_USDG_ADDRESS=0x451e4a07d601a4327c35c7cd687763eb8d32f6c5
+```
+
+**Flow:** room fills (2+ players) → server creates an onchain lobby and
+broadcasts `{t:'onchain_lobby', lobbyId, entryFee}` → each client approves USDG
+and calls `arena.join(lobbyId)`, then the game starts once every player is
+onchain (120s payment window) → on game end the server calls
+`declareWinner(lobbyId, winnerWallet)` as referee → winner gets 95% of the pot
++ the YETI bonus, treasury gets 5%. Without `CHAIN_ENABLED`, the original
+free-play path runs unchanged.
+
+**Deployed (testnet 46630):**
+- YetiArena: `0xe3cc3221c1444169a0218954b3f76de72968dd23`
+- MockUSDG: `0x451e4a07d601a4327c35c7cd687763eb8d32f6c5`
+- MockYETI: `0x85ea441b5bd85baca58fa5d9720a497e3d3f9cea` (1,000/win bonus)
+
 ## Run it locally
 
 **Server** (Node 18+):

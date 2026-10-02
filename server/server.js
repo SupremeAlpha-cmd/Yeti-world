@@ -12,12 +12,23 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { WebSocketServer } = require('ws');
+const chain = require('./chain.js');
 
 const PORT = parseInt(process.env.PORT || '8080', 10);
 const LOBBY_SECONDS = parseInt(process.env.LOBBY_SECONDS || '60', 10);
 const REMATCH_SECONDS = parseInt(process.env.REMATCH_SECONDS || '15', 10);
 const MIN_PLAYERS = parseInt(process.env.MIN_PLAYERS || '2', 10);
 const MAX_PLAYERS = parseInt(process.env.MAX_PLAYERS || '8', 10);
+const ONCHAIN_WAIT_SECONDS = parseInt(process.env.ONCHAIN_WAIT_SECONDS || '120', 10);
+
+// onchain referee (no-op unless CHAIN_ENABLED=1)
+let chainReady = false;
+try {
+  chainReady = chain.init();
+} catch (e) {
+  console.error('[chain] init failed:', e.message);
+  process.exit(1);
+}
 
 // ---- tuning ----
 const ARENA = { w: 900, h: 640 };
@@ -57,6 +68,7 @@ function makeRoom(code) {
     countdown: null, countdownEndsAt: 0,
     tick: 0, spawnAcc: 0, elapsed: 0,
     winner: null, endTimer: null,
+    chain: null, // { lobbyId, entryFee, deadline, poll } while waiting for onchain entries
   };
   rooms.set(code, room);
   return room;
@@ -112,11 +124,76 @@ function stopCountdown(room) {
 }
 
 function maybeStartCountdown(room) {
-  if (room.state !== 'lobby' || room.countdown) return;
-  if (room.players.size >= MIN_PLAYERS) startCountdown(room, LOBBY_SECONDS);
+  if (room.state !== 'lobby' || room.countdown || room.chain) return;
+  if (room.players.size < MIN_PLAYERS) return;
+  if (chainReady) {
+    startOnchainLobby(room).catch((e) => {
+      console.error(`[chain] createLobby failed for room ${room.code}:`, e.message);
+      broadcast(room, { t: 'error', msg: 'Onchain lobby failed — try again' });
+    });
+    return;
+  }
+  startCountdown(room, LOBBY_SECONDS);
 }
 
-function addPlayer(room, ws, name) {
+// ---- onchain lobby flow (CHAIN_ENABLED=1) ----
+async function startOnchainLobby(room) {
+  if (room.chain || room.state !== 'lobby') return;
+  console.log(`[chain] creating onchain lobby for room ${room.code}...`);
+  const { lobbyId, tx } = await chain.createLobby();
+  console.log(`[chain] lobby ${lobbyId} created (tx ${tx}) for room ${room.code}`);
+  room.chain = {
+    lobbyId,
+    entryFee: chain.ENTRY_FEE_USDG.toString(),
+    deadline: Date.now() + ONCHAIN_WAIT_SECONDS * 1000,
+    poll: null,
+  };
+  broadcast(room, { t: 'onchain_lobby', lobbyId, entryFee: room.chain.entryFee });
+  room.chain.poll = setInterval(() => pollOnchainEntries(room), 2000);
+}
+
+async function pollOnchainEntries(room) {
+  if (!room.chain || room.state !== 'lobby') {
+    if (room.chain?.poll) clearInterval(room.chain.poll);
+    return;
+  }
+  // timeout
+  if (Date.now() > room.chain.deadline) {
+    console.log(`[chain] onchain wait timed out for room ${room.code} (lobby ${room.chain.lobbyId})`);
+    clearInterval(room.chain.poll);
+    const abandoned = room.chain.lobbyId;
+    room.chain = null;
+    broadcast(room, { t: 'onchain_timeout', lobbyId: abandoned });
+    broadcast(room, { t: 'lobby', room: roomPublic(room) });
+    return;
+  }
+  try {
+    const ps = [...room.players.values()];
+    // every player must have a wallet and have entered onchain
+    for (const p of ps) {
+      if (!p.wallet) return; // shouldn't happen in chain mode
+      const entered = await chain.hasEntered(room.chain.lobbyId, p.wallet);
+      if (!entered) return;
+    }
+    // all in — stop polling, start the game
+    clearInterval(room.chain.poll);
+    console.log(`[chain] all ${ps.length} players onchain for lobby ${room.chain.lobbyId} — starting`);
+    startGame(room);
+  } catch (e) {
+    console.error(`[chain] poll error for room ${room.code}:`, e.message);
+  }
+}
+
+function abortOnchainWait(room, reason) {
+  if (!room.chain) return;
+  clearInterval(room.chain.poll);
+  console.log(`[chain] aborting onchain wait for room ${room.code}: ${reason} (lobby ${room.chain.lobbyId} abandoned)`);
+  room.chain = null;
+  broadcast(room, { t: 'onchain_timeout' });
+  broadcast(room, { t: 'lobby', room: roomPublic(room) });
+}
+
+function addPlayer(room, ws, name, wallet) {
   const id = 'p' + (nextPlayerNum++);
   const animal = ANIMALS[[...room.players.values()].length % ANIMALS.length];
   const p = {
@@ -125,14 +202,25 @@ function addPlayer(room, ws, name) {
     input: { dx: 0, dy: 0, tx: null, ty: null, touch: false },
     color: ANIMAL_COLORS[animal],
     place: null,
+    wallet: wallet || null, // onchain address (chain mode)
   };
   room.players.set(id, p);
   ws._player = p;
   send(p, { t: 'welcome', id, room: roomPublic(room) });
+  // late joiner during onchain wait: send them the payment prompt
+  if (room.chain) {
+    send(p, { t: 'onchain_lobby', lobbyId: room.chain.lobbyId, entryFee: room.chain.entryFee });
+  }
   broadcast(room, { t: 'lobby', room: roomPublic(room) });
   if (room.players.size >= MAX_PLAYERS) {
     stopCountdown(room);
-    startGame(room);
+    if (chainReady && !room.chain) {
+      startOnchainLobby(room).catch((e) => {
+        console.error(`[chain] createLobby failed for room ${room.code}:`, e.message);
+      });
+    } else {
+      startGame(room);
+    }
   } else {
     maybeStartCountdown(room);
   }
@@ -146,6 +234,7 @@ function removePlayer(p) {
   if (room.state === 'lobby') {
     if (room.players.size < MIN_PLAYERS) {
       stopCountdown(room);
+      abortOnchainWait(room, 'not enough players');
       broadcast(room, { t: 'lobby', room: roomPublic(room) });
     } else {
       broadcast(room, { t: 'lobby', room: roomPublic(room) });
@@ -225,6 +314,16 @@ function endGame(room, winner) {
   room.state = 'ended';
   room.winner = winner ? { id: winner.id, name: winner.name, animal: winner.animal } : null;
   broadcast(room, { t: 'end', winner: room.winner });
+  // onchain payout
+  const lobbyId = room.chain?.lobbyId || null;
+  room.chain = null;
+  if (chainReady && lobbyId && winner && winner.wallet) {
+    chain.declareWinner(lobbyId, winner.wallet)
+      .then(({ hash }) => console.log(`[chain] winner ${winner.name} (${winner.wallet}) paid for lobby ${lobbyId} — tx ${hash}`))
+      .catch((e) => console.error(`[chain] declareWinner failed for lobby ${lobbyId}:`, e.message));
+  } else if (chainReady && lobbyId) {
+    console.log(`[chain] no payout for lobby ${lobbyId} (winner: ${winner ? winner.name : 'none'})`);
+  }
   // auto-cleanup empty rooms after a while
   clearTimeout(room.endTimer);
   room.endTimer = setTimeout(() => {
@@ -342,13 +441,16 @@ function handleMessage(ws, raw) {
       room = [...rooms.values()].find((r) => r.state === 'lobby' && r.players.size < MAX_PLAYERS);
       if (!room) room = makeRoom(makeCode());
     }
-    addPlayer(room, ws, m.name);
+    addPlayer(room, ws, m.name, m.wallet);
     return;
   }
   if (!p) return;
   const room = p.room;
 
-  if (m.t === 'animal') {
+  if (m.t === 'onchain_ready') {
+    // client signals its join tx confirmed; the poller verifies onchain — just log
+    console.log(`[chain] ${p.name} reports onchain entry (lobby ${m.lobbyId}, tx ${m.tx || 'n/a'})`);
+  } else if (m.t === 'animal') {
     if (room.state === 'lobby' && ANIMALS.includes(m.animal)) {
       p.animal = m.animal;
       p.color = ANIMAL_COLORS[m.animal];
@@ -370,10 +472,14 @@ function handleMessage(ws, raw) {
     if (room.state === 'ended' && room.players.size >= 1) {
       room.state = 'lobby';
       room.winner = null;
+      room.chain = null;
       // reset positions/alive for lobby display
       for (const q of room.players.values()) { q.alive = true; q.place = null; }
       broadcast(room, { t: 'lobby', room: roomPublic(room) });
-      if (room.players.size >= MIN_PLAYERS) startCountdown(room, REMATCH_SECONDS);
+      if (room.players.size >= MIN_PLAYERS) {
+        if (chainReady) maybeStartCountdown(room);
+        else startCountdown(room, REMATCH_SECONDS);
+      }
     }
   } else if (m.t === 'leave') {
     removePlayer(p);
