@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#070b14" />
+  <title>Yeti World — dodge the memecoins</title>
+  <link rel="stylesheet" href="./src/style.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- HOME -->
+    <section id="screen-home" class="screen active">
+      <div class="hero">
+        <div class="logo-row"><span class="logo-emoji">🧌</span><span class="logo-emoji">🐂</span><span class="logo-emoji">🐳</span></div>
+        <h1>YETI&nbsp;WORLD</h1>
+        <p class="tagline">The yeti runs the arena. Pick your animal.<br />Dodge the memecoins. Last one standing wins.</p>
+        <input id="name-input" maxlength="16" placeholder="Your name" autocomplete="off" />
+        <div class="btn-row">
+          <button id="btn-quick" class="btn primary">Quick match</button>
+        </div>
+        <div class="join-row">
+          <input id="code-input" maxlength="4" placeholder="CODE" autocomplete="off" />
+          <button id="btn-join-code" class="btn">Join</button>
+        </div>
+        <p id="home-error" class="error"></p>
+        <p class="hint">Prototype — no wallet, no fees, just dodge.</p>
+      </div>
+    </section>
+
+    <!-- LOBBY -->
+    <section id="screen-lobby" class="screen">
+      <div class="panel">
+        <p class="label">ROOM CODE</p>
+        <div class="code-row">
+          <span id="room-code" class="code">----</span>
+          <button id="btn-copy" class="btn small">Copy</button>
+        </div>
+        <p id="lobby-status" class="status">Waiting for players…</p>
+        <div id="countdown" class="countdown hidden"></div>
+        <p class="label">CHOOSE YOUR ANIMAL</p>
+        <div id="animal-grid" class="animal-grid"></div>
+        <p class="label">PLAYERS</p>
+        <div id="player-list" class="player-list"></div>
+        <button id="btn-leave-lobby" class="btn ghost">Leave</button>
+      </div>
+    </section>
+
+    <!-- GAME -->
+    <section id="screen-game" class="screen">
+      <div id="hud">
+        <span id="hud-alive">🐾 0</span>
+        <span id="hud-time">0.0s</span>
+        <button id="btn-mute" class="btn small ghost">🔊</button>
+      </div>
+      <canvas id="game-canvas"></canvas>
+      <div id="spectate" class="overlay hidden">
+        <p id="spectate-text">Eliminated!</p>
+        <p class="sub">Spectating…</p>
+      </div>
+      <div id="banner" class="overlay hidden">
+        <h2 id="banner-title">🏆 WINNER</h2>
+        <p id="banner-sub"></p>
+        <button id="btn-rematch" class="btn primary">Rematch</button>
+        <button id="btn-leave-end" class="btn ghost">Leave</button>
+      </div>
+    </section>
+    <div id="yeti" class="hidden">
+      <span id="yeti-emoji">🧌</span>
+      <div id="yeti-bubble" class="hidden"></div>
+    </div>
+  </div>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
