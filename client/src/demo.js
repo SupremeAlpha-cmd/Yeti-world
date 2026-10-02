@@ -123,7 +123,8 @@ let onDemoEnd = () => {};
 export function startDemo(canvas, onEnd) {
   onDemoEnd = onEnd || (() => {});
   if (!renderer) renderer = createRenderer(canvas);
-  renderer.resize();
+  // resize after layout settles (view just became visible)
+  requestAnimationFrame(() => renderer.resize());
   reset();
   running = true;
   lastTs = 0;
