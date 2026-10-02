@@ -53,6 +53,8 @@ html, body {
 .landing-cta { text-align: center; padding: 48px 0 16px; }
 
 /* ---------- app shots ---------- */
+.shot-feature { margin: 8px 0 20px; }
+.shot-feature img { width: 100%; border-radius: 20px; border: 3px solid var(--line); display: block; box-shadow: 0 6px 0 rgba(6,8,20,.6); }
 .shots { display: flex; flex-direction: column; gap: 28px; margin: 8px 0 8px; }
 .shot { margin: 0; }
 .shot img { width: 100%; border-radius: 16px; border: 1px solid var(--line); display: block; }
