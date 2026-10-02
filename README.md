@@ -39,7 +39,7 @@ Env knobs for the server: `PORT`, `LOBBY_SECONDS` (default 60),
 ## Playtest (Javin + Bobby, two phones, different networks)
 
 Vercel can't host the WebSocket server, so for the playtest the server runs on
-a machine with a public tunnel:
+any machine with normal internet access, exposed through a tunnel:
 
 ```bash
 cd server && npm start   # keep this running on the host machine
@@ -52,9 +52,11 @@ over it (wss). One phone taps **Quick match**, the other joins with the room
 code shown. That's it — no install, no account, no wallet.
 
 > The tunnel URL is temporary: it lives as long as the `cloudflared` process
-> runs. If it restarts, share the new URL. For a permanent home, put the
-> `server/` folder on Railway/Render/Fly.io (any Node host works — it's one
-> `node server.js`) and point the client's `VITE_WS_URL` at it at build time.
+> runs. If it restarts, share the new URL. Run the tunnel from a machine with
+> unrestricted internet (some sandboxed/VPN networks block tunnel registration).
+> For a permanent home, put the `server/` folder on Railway/Render/Fly.io
+> (any Node host works — it's one `node server.js`) and point the client's
+> `VITE_WS_URL` at it at build time.
 
 ## How it works
 
