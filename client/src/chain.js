@@ -1,4 +1,5 @@
-// Onchain layer (testnet). Active only when VITE_CHAIN_ENABLED=1.
+// Onchain layer. Active only when VITE_CHAIN_ENABLED=1.
+// Chain selected by VITE_MAINNET=1 (mainnet 4663) vs default testnet (46630).
 import {
   createPublicClient, createWalletClient, custom, http,
   defineChain, parseAbi,
@@ -8,13 +9,24 @@ export const CHAIN_ENABLED = import.meta.env.VITE_CHAIN_ENABLED === '1';
 export const ARENA_ADDRESS = import.meta.env.VITE_ARENA_ADDRESS;
 export const USDG_ADDRESS = import.meta.env.VITE_USDG_ADDRESS;
 
-export const robinhoodTestnet = defineChain({
-  id: 46630,
-  name: 'Robinhood Testnet',
-  nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-  rpcUrls: { default: { http: ['https://rpc.testnet.chain.robinhood.com'] } },
-  testnet: true,
-});
+const IS_MAINNET = import.meta.env.VITE_MAINNET === '1';
+
+export const activeChain = IS_MAINNET
+  ? defineChain({
+      id: 4663,
+      name: 'Robinhood Chain',
+      nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+      rpcUrls: { default: { http: ['https://rpc.mainnet.chain.robinhood.com'] } },
+    })
+  : defineChain({
+      id: 46630,
+      name: 'Robinhood Testnet',
+      nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+      rpcUrls: { default: { http: ['https://rpc.testnet.chain.robinhood.com'] } },
+      testnet: true,
+    });
+
+const CHAIN_ID_HEX = '0x' + activeChain.id.toString(16);
 
 const erc20Abi = parseAbi([
   'function approve(address spender, uint256 amount) returns (bool)',
@@ -47,21 +59,21 @@ export async function connectWallet() {
   if (!provider) throw new Error('No wallet found. Install a wallet with an injected provider.');
   const [addr] = await provider.request({ method: 'eth_requestAccounts' });
   account = addr;
-  // switch to Robinhood testnet, adding it if missing
+  // switch to the active chain, adding it if the wallet doesn't know it
   try {
     await provider.request({
       method: 'wallet_switchEthereumChain',
-      params: [{ chainId: '0xb65e' }], // 46630
+      params: [{ chainId: CHAIN_ID_HEX }],
     });
   } catch (e) {
     if (e && e.code === 4902) {
       await provider.request({
         method: 'wallet_addEthereumChain',
         params: [{
-          chainId: '0xb65e',
-          chainName: 'Robinhood Testnet',
+          chainId: CHAIN_ID_HEX,
+          chainName: activeChain.name,
           nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-          rpcUrls: ['https://rpc.testnet.chain.robinhood.com'],
+          rpcUrls: [activeChain.rpcUrls.default.http[0]],
         }],
       });
     } else {
@@ -69,10 +81,10 @@ export async function connectWallet() {
     }
   }
   walletClient = createWalletClient({
-    account, chain: robinhoodTestnet, transport: custom(provider),
+    account, chain: activeChain, transport: custom(provider),
   });
   publicClient = createPublicClient({
-    chain: robinhoodTestnet, transport: http(),
+    chain: activeChain, transport: http(),
   });
   return account;
 }
