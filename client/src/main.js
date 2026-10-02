@@ -1,10 +1,53 @@
 import { GameSocket } from './net.js';
 import { createRenderer, ANIMALS, ANIMAL_EMOJI, ANIMAL_COLORS } from './game.js';
 import { sfx, toggleMute, isMuted } from './audio.js';
+
+// ---------- views ----------
+const views = { play: $('view-play'), how: $('view-how'), winners: $('view-winners') };
+let winnersLoaded = false, factsLoaded = false;
+function showView(name) {
+  for (const k in views) views[k].classList.toggle('active', k === name);
+  document.querySelectorAll('.nav-link').forEach((b) => b.classList.toggle('active', b.dataset.view === name));
+  if (name === 'winners' && !winnersLoaded) loadWinners();
+  if (name === 'how' && !factsLoaded) loadFacts();
+}
+document.querySelectorAll('.nav-link').forEach((b) => b.addEventListener('click', () => showView(b.dataset.view)));
+
+async function loadFacts() {
+  factsLoaded = true;
+  if (!CHAIN_ENABLED || !ARENA_ADDRESS) return;
+  const f = await getArenaFacts();
+  if (!f) return;
+  if (f.fee) $('fact-entry').textContent = fmtUsdg(f.fee) + ' USDG';
+  if (f.bonus) $('fact-bonus').textContent = (Number(f.bonus) / 1e18).toLocaleString() + ' YETI';
+}
+
+async function loadWinners() {
+  winnersLoaded = true;
+  const list = $('winners-list');
+  if (!CHAIN_ENABLED || !ARENA_ADDRESS) {
+    list.innerHTML = '<p class="hint">Onchain mode isn\'t configured yet — winners will appear here once the arena is live.</p>';
+    return;
+  }
+  const ws = await getWinners();
+  if (!ws.length) {
+    list.innerHTML = '<p class="hint">No crowns yet. Be the first.</p>';
+    return;
+  }
+  list.innerHTML = '';
+  for (const w of ws) {
+    const row = document.createElement('div');
+    row.className = 'winner-row';
+    const short = w.winner.slice(0, 6) + '…' + w.winner.slice(-4);
+    row.innerHTML = `<span class="crown">👑</span><div class="who"><b>Lobby #${escapeHtml(w.lobbyId)}</b><span>${short}</span></div><div class="amt"><b>${fmtUsdg(w.prize)}</b><span>prize</span></div>`;
+    list.appendChild(row);
+  }
+}
 import {
   CHAIN_ENABLED, ARENA_ADDRESS, USDG_ADDRESS,
   hasWallet, connectWallet, getAccount, fmtUsdg,
   getAllowance, approveUsdg, joinOnchain,
+  getArenaFacts, getWinners,
 } from './chain.js';
 
 const PLAYER_SPEED = 300;
@@ -91,10 +134,6 @@ const touch = { active: false, tx: 0, ty: 0 };
 let lastInputSend = 0;
 
 // ---------- home ----------
-$('btn-play').addEventListener('click', () => {
-  sfx.unlock();
-  $('play-panel').scrollIntoView({ behavior: 'smooth' });
-});
 $('btn-quick').addEventListener('click', () => join({ mode: 'quick' }));
 $('btn-join-code').addEventListener('click', () => {
   join({ mode: 'code', code: $('code-input').value.trim() });

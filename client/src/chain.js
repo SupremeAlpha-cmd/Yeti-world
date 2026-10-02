@@ -39,6 +39,9 @@ const arenaAbi = parseAbi([
   'function join(uint256 lobbyId)',
   'function hasEntered(uint256 lobbyId, address player) view returns (bool)',
   'function lobbyInfo(uint256 lobbyId) view returns (uint256 entryFee, uint256 pot, uint256 playerCount, bool resolved)',
+  'function bonusPerWin() view returns (uint256)',
+  'function nextLobbyId() view returns (uint256)',
+  'event WinnerDeclared(uint256 indexed lobbyId, address indexed winner, uint256 prize, uint256 fee)',
 ]);
 
 let walletClient = null;
@@ -127,4 +130,42 @@ export async function hasEnteredOnchain(lobbyId, addr) {
     address: ARENA_ADDRESS, abi: arenaAbi, functionName: 'hasEntered',
     args: [BigInt(lobbyId), addr],
   });
+}
+
+// read-only client for public data (no wallet needed)
+let roClient = null;
+function ro() {
+  if (!roClient) roClient = createPublicClient({ chain: activeChain, transport: http() });
+  return roClient;
+}
+
+export async function getArenaFacts() {
+  if (!ARENA_ADDRESS) return null;
+  const c = ro();
+  try {
+    const bonus = await c.readContract({ address: ARENA_ADDRESS, abi: arenaAbi, functionName: 'bonusPerWin' }).catch(() => null);
+    // entry fee lives per-lobby; use the most recent lobby as the reference
+    let fee = null;
+    const nextId = await c.readContract({ address: ARENA_ADDRESS, abi: arenaAbi, functionName: 'nextLobbyId' }).catch(() => 0n);
+    if (nextId > 0n) {
+      const info = await c.readContract({ address: ARENA_ADDRESS, abi: arenaAbi, functionName: 'lobbyInfo', args: [nextId - 1n] }).catch(() => null);
+      if (info) fee = info[0];
+    }
+    return { fee, bonus };
+  } catch { return null; }
+}
+
+export async function getWinners(limit = 20) {
+  if (!ARENA_ADDRESS) return [];
+  const c = ro();
+  const logs = await c.getContractEvents({
+    address: ARENA_ADDRESS, abi: arenaAbi, eventName: 'WinnerDeclared',
+    fromBlock: 0n, toBlock: 'latest',
+  }).catch(() => []);
+  return logs.slice(-limit).reverse().map((l) => ({
+    lobbyId: l.args.lobbyId.toString(),
+    winner: l.args.winner,
+    prize: l.args.prize,
+    tx: l.transactionHash,
+  }));
 }

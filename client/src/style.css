@@ -23,6 +23,36 @@ html, body {
 .screen.active { display: flex; }
 #screen-home.active { justify-content: flex-start; overflow-y: auto; padding-top: 48px; padding-bottom: 48px; }
 
+/* ---------- project nav ---------- */
+#topnav { position: sticky; top: 0; z-index: 50; display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: rgba(7,11,20,.9); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+.nav-brand { display: flex; align-items: center; gap: 10px; font-weight: 800; letter-spacing: 2px; font-size: 15px; }
+.nav-brand img { width: 32px; height: 32px; border-radius: 8px; }
+.nav-links { display: flex; gap: 4px; }
+.nav-link { background: none; border: none; color: var(--muted); font-size: 14px; font-weight: 600; padding: 8px 14px; border-radius: 10px; cursor: pointer; }
+.nav-link:hover { color: var(--text); }
+.nav-link.active { color: var(--text); background: rgba(125,211,252,.1); }
+.view { display: none; flex: 1; flex-direction: column; }
+.view.active { display: flex; }
+
+/* ---------- content pages ---------- */
+.page { width: 100%; max-width: 640px; margin: 0 auto; padding: 40px 20px 64px; }
+.page h2 { font-size: 28px; margin: 0 0 8px; letter-spacing: 1px; }
+.page h3 { font-size: 18px; margin: 32px 0 12px; }
+.page-sub { color: var(--muted); line-height: 1.6; margin: 0 0 20px; }
+.facts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.fact { background: rgba(16,24,40,.6); border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
+.fact span { display: block; color: var(--muted); font-size: 12px; letter-spacing: 1px; margin-bottom: 6px; }
+.fact b { font-size: 16px; }
+.winners { display: flex; flex-direction: column; gap: 10px; }
+.winner-row { display: flex; align-items: center; gap: 12px; background: rgba(16,24,40,.6); border: 1px solid var(--line); border-radius: 14px; padding: 12px 16px; }
+.winner-row .crown { font-size: 22px; }
+.winner-row .who { flex: 1; }
+.winner-row .who b { display: block; font-size: 14px; }
+.winner-row .who span { color: var(--muted); font-size: 12px; font-family: monospace; }
+.winner-row .amt { text-align: right; }
+.winner-row .amt b { display: block; color: #4ade80; }
+.winner-row .amt span { color: var(--muted); font-size: 12px; }
+
 /* ---------- home ---------- */
 .hero { text-align: center; max-width: 420px; width: 100%; }
 .logo-row { margin-bottom: 8px; }

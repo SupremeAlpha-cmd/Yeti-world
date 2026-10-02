@@ -22,86 +22,118 @@
   <link rel="stylesheet" href="./src/style.css" />
 </head>
 <body>
+  <nav id="topnav">
+    <div class="nav-brand"><img src="/logo.png" alt="" /><span>YETI WORLD</span></div>
+    <div class="nav-links">
+      <button data-view="play" class="nav-link active">Play</button>
+      <button data-view="how" class="nav-link">How it works</button>
+      <button data-view="winners" class="nav-link">Winners</button>
+    </div>
+  </nav>
   <div id="app">
-    <!-- HOME / LANDING -->
-    <section id="screen-home" class="screen active">
-      <div class="hero">
-        <div class="logo-row"><img src="/logo.png" alt="Yeti World" class="site-logo" /></div>
-        <h1>YETI&nbsp;WORLD</h1>
-        <p class="tagline">The onchain survival arena. Pick your animal, dodge the memecoins raining from the sky — one hit and you're out. Last one standing takes the pot.</p>
-        <div class="btn-row">
-          <button id="btn-play" class="btn primary big">Enter the arena</button>
+    <!-- PLAY -->
+    <div id="view-play" class="view active">
+      <section id="screen-home" class="screen active">
+        <div class="hero">
+          <div class="logo-row"><img src="/logo.png" alt="Yeti World" class="site-logo" /></div>
+          <h1>YETI&nbsp;WORLD</h1>
+          <p class="tagline">Pick your animal. Dodge the memecoins.<br />Last one standing takes the pot.</p>
+          <input id="name-input" maxlength="16" placeholder="Your name" autocomplete="off" />
+          <div id="wallet-row" class="join-row hidden">
+            <button id="btn-wallet" class="btn">Connect wallet</button>
+            <span id="wallet-addr" class="hint"></span>
+          </div>
+          <div class="btn-row">
+            <button id="btn-quick" class="btn primary">Quick match</button>
+          </div>
+          <p class="divider"><span>or join a private room</span></p>
+          <div class="join-row">
+            <input id="code-input" maxlength="4" placeholder="CODE" autocomplete="off" />
+            <button id="btn-join-code" class="btn">Join</button>
+          </div>
+          <p class="hint">Playing with friends? Enter the 4-letter room code they shared.</p>
+          <p id="home-error" class="error"></p>
         </div>
+      </section>
+
+      <!-- LOBBY -->
+      <section id="screen-lobby" class="screen">
+        <div class="panel">
+          <p class="label">ROOM CODE</p>
+          <div class="code-row">
+            <span id="room-code" class="code">----</span>
+            <button id="btn-copy" class="btn small">Copy</button>
+          </div>
+          <p id="lobby-status" class="status">Waiting for players…</p>
+          <div id="countdown" class="countdown hidden"></div>
+          <div id="entry-panel" class="hidden">
+            <p class="label">ONCHAIN ENTRY</p>
+            <p id="entry-fee" class="status">Entry: —</p>
+            <button id="btn-enter" class="btn primary">Approve USDG &amp; Join</button>
+            <p id="entry-status" class="hint"></p>
+          </div>
+          <p class="label">CHOOSE YOUR ANIMAL</p>
+          <div id="animal-grid" class="animal-grid"></div>
+          <p class="label">PLAYERS</p>
+          <div id="player-list" class="player-list"></div>
+          <button id="btn-leave-lobby" class="btn ghost">Leave</button>
+        </div>
+      </section>
+
+      <!-- GAME -->
+      <section id="screen-game" class="screen">
+        <div id="hud">
+          <span id="hud-alive">🐾 0</span>
+          <span id="hud-time">0.0s</span>
+          <button id="btn-mute" class="btn small ghost">🔊</button>
+        </div>
+        <canvas id="game-canvas"></canvas>
+        <div id="spectate" class="overlay hidden">
+          <p id="spectate-text">Eliminated!</p>
+          <p class="sub">Spectating…</p>
+        </div>
+        <div id="banner" class="overlay hidden">
+          <h2 id="banner-title">🏆 WINNER</h2>
+          <p id="banner-sub"></p>
+          <button id="btn-rematch" class="btn primary">Rematch</button>
+          <button id="btn-leave-end" class="btn ghost">Leave</button>
+        </div>
+      </section>
+    </div>
+
+    <!-- HOW IT WORKS -->
+    <div id="view-how" class="view">
+      <div class="page">
+        <h2>How it works</h2>
+        <p class="page-sub">A survival arena with real stakes. No luck, no grinding — just reflexes.</p>
         <div class="how">
-          <div class="how-step"><span class="how-n">1</span><div><b>Connect wallet</b><span>Link your wallet on Robinhood Chain.</span></div></div>
-          <div class="how-step"><span class="how-n">2</span><div><b>Pay entry</b><span>Your USDG goes into the prize pot.</span></div></div>
-          <div class="how-step"><span class="how-n">3</span><div><b>Survive</b><span>Dodge the memecoins. Winner takes 95% of the pot + YETI.</span></div></div>
+          <div class="how-step"><span class="how-n">1</span><div><b>Connect wallet</b><span>Link any wallet on Robinhood Chain. You'll need USDG for the entry fee plus a little ETH for gas.</span></div></div>
+          <div class="how-step"><span class="how-n">2</span><div><b>Pay entry</b><span>When your room fills, approve the USDG entry onchain. Every player's entry goes into one prize pot — the smart contract holds it, not us.</span></div></div>
+          <div class="how-step"><span class="how-n">3</span><div><b>Survive</b><span>Pick your animal — bull, bear, ape, whale, wolf, or frog — and dodge the memecoins raining down. $RUG, $HONEYPOT, $DUMPIT… one touch and you're out.</span></div></div>
+          <div class="how-step"><span class="how-n">4</span><div><b>Get paid</b><span>Last animal standing wins. The contract sends <b>95% of the pot</b> straight to the winner's wallet, plus a <b>YETI bonus</b>. 5% goes to the treasury to keep the arena running.</span></div></div>
         </div>
+        <h3>The money</h3>
+        <div class="facts">
+          <div class="fact"><span>Entry</span><b id="fact-entry">—</b></div>
+          <div class="fact"><span>Winner gets</span><b>95% of pot</b></div>
+          <div class="fact"><span>Treasury</span><b>5%</b></div>
+          <div class="fact"><span>YETI bonus</span><b id="fact-bonus">—</b></div>
+          <div class="fact"><span>Refunds</span><b>Full, if a lobby is cancelled</b></div>
+        </div>
+        <h3>Fair play</h3>
+        <p class="page-sub">Gameplay runs on an authoritative server at 60Hz — your position is verified, not trusted. Payouts are enforced by the YetiArena smart contract: the server can only declare the winner, it can never touch the pot.</p>
       </div>
-      <div class="hero play-panel" id="play-panel">
-        <p class="label">PLAY NOW</p>
-        <input id="name-input" maxlength="16" placeholder="Your name" autocomplete="off" />
-        <div id="wallet-row" class="join-row hidden">
-          <button id="btn-wallet" class="btn">Connect wallet</button>
-          <span id="wallet-addr" class="hint"></span>
-        </div>
-        <div class="btn-row">
-          <button id="btn-quick" class="btn primary">Quick match</button>
-        </div>
-        <p class="divider"><span>or join a private room</span></p>
-        <div class="join-row">
-          <input id="code-input" maxlength="4" placeholder="CODE" autocomplete="off" />
-          <button id="btn-join-code" class="btn">Join</button>
-        </div>
-        <p class="hint">Playing with friends? Enter the 4-letter room code they shared to join their private match.</p>
-        <p id="home-error" class="error"></p>
-        <p class="hint" id="home-hint">Dodge the market. Last animal standing takes the pot.</p>
-      </div>
-    </section>
+    </div>
 
-    <!-- LOBBY -->
-    <section id="screen-lobby" class="screen">
-      <div class="panel">
-        <p class="label">ROOM CODE</p>
-        <div class="code-row">
-          <span id="room-code" class="code">----</span>
-          <button id="btn-copy" class="btn small">Copy</button>
-        </div>
-        <p id="lobby-status" class="status">Waiting for players…</p>
-        <div id="countdown" class="countdown hidden"></div>
-        <div id="entry-panel" class="hidden">
-          <p class="label">ONCHAIN ENTRY</p>
-          <p id="entry-fee" class="status">Entry: —</p>
-          <button id="btn-enter" class="btn primary">Approve USDG &amp; Join</button>
-          <p id="entry-status" class="hint"></p>
-        </div>
-        <p class="label">CHOOSE YOUR ANIMAL</p>
-        <div id="animal-grid" class="animal-grid"></div>
-        <p class="label">PLAYERS</p>
-        <div id="player-list" class="player-list"></div>
-        <button id="btn-leave-lobby" class="btn ghost">Leave</button>
+    <!-- WINNERS -->
+    <div id="view-winners" class="view">
+      <div class="page">
+        <h2>Winners</h2>
+        <p class="page-sub">Every crown, onchain. Verified, not claimed.</p>
+        <div id="winners-list" class="winners"><p class="hint">Loading…</p></div>
       </div>
-    </section>
+    </div>
 
-    <!-- GAME -->
-    <section id="screen-game" class="screen">
-      <div id="hud">
-        <span id="hud-alive">🐾 0</span>
-        <span id="hud-time">0.0s</span>
-        <button id="btn-mute" class="btn small ghost">🔊</button>
-      </div>
-      <canvas id="game-canvas"></canvas>
-      <div id="spectate" class="overlay hidden">
-        <p id="spectate-text">Eliminated!</p>
-        <p class="sub">Spectating…</p>
-      </div>
-      <div id="banner" class="overlay hidden">
-        <h2 id="banner-title">🏆 WINNER</h2>
-        <p id="banner-sub"></p>
-        <button id="btn-rematch" class="btn primary">Rematch</button>
-        <button id="btn-leave-end" class="btn ghost">Leave</button>
-      </div>
-    </section>
     <div id="yeti" class="hidden">
       <span id="yeti-emoji">🧌</span>
       <div id="yeti-bubble" class="hidden"></div>
