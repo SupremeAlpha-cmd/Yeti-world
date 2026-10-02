@@ -31,8 +31,24 @@ html, body {
 .nav-link { background: none; border: none; color: var(--muted); font-size: 14px; font-weight: 600; padding: 8px 14px; border-radius: 10px; cursor: pointer; }
 .nav-link:hover { color: var(--text); }
 .nav-link.active { color: var(--text); background: rgba(125,211,252,.1); }
+.nav-link.cta { background: #7dd3fc; color: #070b14; font-weight: 700; }
+.nav-link.cta:hover { color: #070b14; background: #a5e3ff; }
+.nav-brand { cursor: pointer; }
 .view { display: none; flex: 1; flex-direction: column; }
 .view.active { display: flex; }
+
+/* ---------- landing ---------- */
+.landing-hero { text-align: center; padding: 48px 0 40px; }
+.landing-logo { width: 140px; height: 140px; border-radius: 32px; margin-bottom: 16px; }
+.landing-hero h1 { font-size: 42px; letter-spacing: 4px; margin: 0 0 12px; }
+.landing-tag { color: var(--muted); font-size: 17px; line-height: 1.6; max-width: 520px; margin: 0 auto 28px; }
+.landing-cta { text-align: center; padding: 48px 0 16px; }
+
+/* ---------- app shots ---------- */
+.shots { display: flex; flex-direction: column; gap: 28px; margin: 8px 0 8px; }
+.shot { margin: 0; }
+.shot img { width: 100%; border-radius: 16px; border: 1px solid var(--line); display: block; }
+.shot figcaption { color: var(--muted); font-size: 14px; margin-top: 10px; text-align: center; }
 
 /* ---------- content pages ---------- */
 .page { width: 100%; max-width: 640px; margin: 0 auto; padding: 40px 20px 64px; }

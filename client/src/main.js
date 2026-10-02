@@ -3,15 +3,16 @@ import { createRenderer, ANIMALS, ANIMAL_EMOJI, ANIMAL_COLORS } from './game.js'
 import { sfx, toggleMute, isMuted } from './audio.js';
 
 // ---------- views ----------
-const views = { play: $('view-play'), how: $('view-how'), winners: $('view-winners') };
+const views = { landing: $('view-landing'), app: $('view-app'), play: $('view-play') };
 let winnersLoaded = false, factsLoaded = false;
 function showView(name) {
   for (const k in views) views[k].classList.toggle('active', k === name);
   document.querySelectorAll('.nav-link').forEach((b) => b.classList.toggle('active', b.dataset.view === name));
-  if (name === 'winners' && !winnersLoaded) loadWinners();
-  if (name === 'how' && !factsLoaded) loadFacts();
+  if (name === 'landing' && !winnersLoaded) loadWinners();
+  if (name === 'landing' && !factsLoaded) loadFacts();
+  window.scrollTo(0, 0);
 }
-document.querySelectorAll('.nav-link').forEach((b) => b.addEventListener('click', () => showView(b.dataset.view)));
+document.querySelectorAll('[data-view]').forEach((b) => b.addEventListener('click', () => showView(b.dataset.view)));
 
 async function loadFacts() {
   factsLoaded = true;
