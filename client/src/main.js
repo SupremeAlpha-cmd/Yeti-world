@@ -2,6 +2,7 @@ import { GameSocket } from './net.js';
 import { createRenderer, ANIMALS, ANIMAL_EMOJI, ANIMAL_COLORS } from './game.js';
 import { sfx, toggleMute, isMuted } from './audio.js';
 import { startDemo, stopDemo, setDemoAnimal, demoTouchHandlers } from './demo.js';
+import { submitScore } from './leaderboard.js';
 
 // ---------- dom helper (must come first) ----------
 const $ = (id) => document.getElementById(id);
@@ -147,24 +148,25 @@ $('btn-quick').addEventListener('click', () => join({ mode: 'quick' }));
 let demoBound = false;
 const demosEnabled = import.meta.env.VITE_DEMOS_ENABLED !== '0';
 if (!demosEnabled) $('btn-demo').style.display = 'none';
+// Shared demo game-over: show the end panel + submit survival time to the daily leaderboard.
+function onDemoGameOver(elapsedSec) {
+  const ms = Math.max(0, Math.round((elapsedSec || 0) * 1000));
+  $('demo-sub').textContent = `You survived ${document.getElementById('demo-time').textContent}. One touch and you're out!`;
+  $('demo-end').classList.remove('hidden');
+  if (ms > 0) submitScore('yeti', ms);
+}
 $('btn-demo').addEventListener('click', () => {
   sfx.unlock();
   setDemoAnimal(myAnimal);
   $('demo-end').classList.add('hidden');
   show('demo');
   if (!demoBound) { demoBound = true; demoTouchHandlers($('demo-canvas')); }
-  startDemo($('demo-canvas'), (survived) => {
-    $('demo-sub').textContent = `You survived ${document.getElementById('demo-time').textContent}. One touch and you're out!`;
-    $('demo-end').classList.remove('hidden');
-  });
+  startDemo($('demo-canvas'), (_survived, elapsedSec) => onDemoGameOver(elapsedSec));
 });
 $('btn-demo-again').addEventListener('click', () => {
   $('demo-end').classList.add('hidden');
   setDemoAnimal(myAnimal);
-  startDemo($('demo-canvas'), () => {
-    $('demo-sub').textContent = `You survived ${document.getElementById('demo-time').textContent}. One touch and you're out!`;
-    $('demo-end').classList.remove('hidden');
-  });
+  startDemo($('demo-canvas'), (_survived, elapsedSec) => onDemoGameOver(elapsedSec));
 });
 $('btn-demo-leave').addEventListener('click', () => {
   stopDemo();

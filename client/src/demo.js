@@ -99,7 +99,7 @@ function loop(ts) {
     renderer.addShake(0.6);
     renderer.popup(player.x, player.y - 30, 'REKT!', '#f87171');
     sfx.elim();
-    onDemoEnd(false);
+    onDemoEnd(false, elapsed);
   } else {
     // near-miss sfx
     for (const c of coins) {
