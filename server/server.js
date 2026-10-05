@@ -39,10 +39,10 @@ const PHYS_HZ = 60;
 const BROADCAST_EVERY = 3; // physics ticks per snapshot => 20Hz
 const GOLDEN_CHANCE = 0.14;
 
-const ANIMALS = ['bull', 'bear', 'ape', 'whale', 'wolf', 'frog'];
+const ANIMALS = ['bear', 'rabbit', 'fox', 'wolf', 'leopard', 'deer', 'lizard', 'eagle'];
 const ANIMAL_COLORS = {
-  bull: '#f97316', bear: '#a16207', ape: '#84cc16',
-  whale: '#38bdf8', wolf: '#a78bfa', frog: '#4ade80',
+  bear: '#a16207', rabbit: '#94a3b8', fox: '#f97316', wolf: '#a78bfa',
+  leopard: '#eab308', deer: '#92400e', lizard: '#4ade80', eagle: '#38bdf8',
 };
 const TICKERS = ['RUG', 'HONEYPOT', 'DUMPIT', 'REKT', 'FOMO', 'SCAM',
   'PUMPDUMP', 'DEAD', 'EXIT', 'BAGHOLD', 'SOFTRUG', 'MELTDOWN'];

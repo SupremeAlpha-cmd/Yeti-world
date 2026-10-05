@@ -12,7 +12,7 @@ let running = false;
 let rafId = 0;
 let lastTs = 0;
 
-const player = { id: 'demo', name: 'You', animal: 'ape', x: 450, y: 560, alive: true };
+const player = { id: 'demo', name: 'You', animal: 'wolf', x: 450, y: 560, alive: true };
 let coins = [];
 let coinId = 0;
 let spawnAcc = 0;

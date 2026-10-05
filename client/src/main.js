@@ -95,7 +95,7 @@ function show(name) {
 
 // ---------- state ----------
 let sock = null;
-let myId = null, myName = 'Player', myAnimal = 'ape';
+let myId = null, myName = 'Player', myAnimal = 'wolf';
 let myWallet = null;            // onchain address (chain mode)
 let onchainLobby = null;        // { lobbyId, entryFee } from server
 let enteredOnchain = false;

@@ -1,10 +1,10 @@
 // Canvas renderer: 60fps, letterboxed arena, particles, screen shake.
 export const ARENA = { w: 900, h: 640 };
-export const ANIMALS = ['bull', 'bear', 'ape', 'whale', 'wolf', 'frog'];
-export const ANIMAL_EMOJI = { bull: '🐂', bear: '🐻', ape: '🦍', whale: '🐳', wolf: '🐺', frog: '🐸' };
+export const ANIMALS = ['bear', 'rabbit', 'fox', 'wolf', 'leopard', 'deer', 'lizard', 'eagle'];
+export const ANIMAL_EMOJI = { bear: '🐻', rabbit: '🐰', fox: '🦊', wolf: '🐺', leopard: '🐆', deer: '🦌', lizard: '🦎', eagle: '🦅' };
 export const ANIMAL_COLORS = {
-  bull: '#f97316', bear: '#eab308', ape: '#84cc16',
-  whale: '#38bdf8', wolf: '#a78bfa', frog: '#4ade80',
+  bear: '#a16207', rabbit: '#94a3b8', fox: '#f97316', wolf: '#a78bfa',
+  leopard: '#eab308', deer: '#92400e', lizard: '#4ade80', eagle: '#38bdf8',
 };
 
 export function createRenderer(canvas) {
