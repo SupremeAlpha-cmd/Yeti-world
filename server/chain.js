@@ -14,6 +14,8 @@ const { privateKeyToAccount } = require('viem/accounts');
 
 const CHAIN_ENABLED = process.env.CHAIN_ENABLED === '1';
 const RPC_URL = process.env.RPC_URL || 'https://rpc.testnet.chain.robinhood.com';
+const CHAIN_ID = parseInt(process.env.CHAIN_ID || '46630', 10);
+const CHAIN_NAME = CHAIN_ID === 4663 ? 'Robinhood Chain' : 'Robinhood Testnet';
 const ARENA_ADDRESS = process.env.ARENA_ADDRESS;
 const ENTRY_FEE_USDG = BigInt(process.env.ENTRY_FEE_USDG || '5000000');
 
@@ -33,20 +35,24 @@ function init() {
   if (!CHAIN_ENABLED) return false;
   if (!ARENA_ADDRESS) throw new Error('ARENA_ADDRESS env required for chain mode');
   const keyPath = process.env.REFEREE_KEY_PATH;
-  if (!keyPath) throw new Error('REFEREE_KEY_PATH env required for chain mode');
-  const raw = fs.readFileSync(keyPath, 'utf8').trim();
+  const raw = process.env.REFEREE_KEY
+    ? process.env.REFEREE_KEY.trim()
+    : keyPath
+      ? fs.readFileSync(keyPath, 'utf8').trim()
+      : null;
+  if (!raw) throw new Error('REFEREE_KEY or REFEREE_KEY_PATH env required for chain mode');
   const key = raw.startsWith('0x') ? raw : '0x' + raw;
   const account = privateKeyToAccount(key);
   refereeAddress = account.address;
   const chain = {
-    id: 46630,
-    name: 'Robinhood Testnet',
+    id: CHAIN_ID,
+    name: CHAIN_NAME,
     nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
     rpcUrls: { default: { http: [RPC_URL] } },
   };
   publicClient = createPublicClient({ chain, transport: http(RPC_URL) });
   walletClient = createWalletClient({ account, chain, transport: http(RPC_URL) });
-  console.log(`[chain] referee ${refereeAddress} on Robinhood testnet, arena ${ARENA_ADDRESS}`);
+  console.log(`[chain] referee ${refereeAddress} on ${CHAIN_NAME}, arena ${ARENA_ADDRESS}`);
   return true;
 }
 
