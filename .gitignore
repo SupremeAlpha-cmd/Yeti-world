@@ -4,3 +4,4 @@ client/dist/
 .DS_Store
 hidden_files/
 *.key
+contracts/hidden_files/
