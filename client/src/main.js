@@ -2,19 +2,20 @@ import { GameSocket } from './net.js';
 import { createRenderer, ANIMALS, ANIMAL_EMOJI, ANIMAL_COLORS } from './game.js';
 import { sfx, toggleMute, isMuted } from './audio.js';
 import { startDemo, stopDemo, setDemoAnimal, demoTouchHandlers } from './demo.js';
-import { submitScore } from './leaderboard.js';
+import { submitScore, LB_URL } from './leaderboard.js';
 
 // ---------- dom helper (must come first) ----------
 const $ = (id) => document.getElementById(id);
 
 // ---------- views ----------
 const views = { landing: $('view-landing'), app: $('view-app'), play: $('view-play') };
-let winnersLoaded = false, factsLoaded = false;
+let winnersLoaded = false, factsLoaded = false, boardLoaded = false;
 function showView(name) {
   for (const k in views) views[k].classList.toggle('active', k === name);
   document.querySelectorAll('.nav-link').forEach((b) => b.classList.toggle('active', b.dataset.view === name));
   if (name === 'landing' && !winnersLoaded) loadWinners();
   if (name === 'landing' && !factsLoaded) loadFacts();
+  if (name === 'landing' && !boardLoaded) loadBoard();
   window.scrollTo(0, 0);
 }
 document.querySelectorAll('[data-view]').forEach((b) => b.addEventListener('click', () => {
@@ -50,6 +51,42 @@ async function loadWinners() {
     const short = w.winner.slice(0, 6) + '…' + w.winner.slice(-4);
     row.innerHTML = `<span class="crown">👑</span><div class="who"><b>Lobby #${escapeHtml(w.lobbyId)}</b><span>${short}</span></div><div class="amt"><b>${fmtUsdg(w.prize)}</b><span>prize</span></div>`;
     list.appendChild(row);
+  }
+}
+
+function fmtTime(ms) {
+  const s = Math.floor(ms / 1000);
+  const m = Math.floor(s / 60);
+  return m > 0 ? `${m}m ${s % 60}s` : `${s}s`;
+}
+
+async function loadBoard() {
+  boardLoaded = true;
+  const list = $('board-list');
+  if (!LB_URL) {
+    list.innerHTML = '<p class="hint">Leaderboard isn\'t configured yet — scores will appear here once it\'s live.</p>';
+    return;
+  }
+  try {
+    const res = await fetch(`${LB_URL}/board/yeti`);
+    if (!res.ok) throw new Error('bad status');
+    const data = await res.json();
+    const rows = data.board || [];
+    if (!rows.length) {
+      list.innerHTML = '<p class="hint">No runs today yet. Be the first on the board.</p>';
+      return;
+    }
+    list.innerHTML = '';
+    const medals = ['🥇', '🥈', '🥉'];
+    for (const r of rows.slice(0, 10)) {
+      const row = document.createElement('div');
+      row.className = 'winner-row';
+      const medal = medals[r.rank - 1] || `<b>#${r.rank}</b>`;
+      row.innerHTML = `<span class="crown">${medal}</span><div class="who"><b>${escapeHtml(r.name)}</b><span>today</span></div><div class="amt"><b>${fmtTime(r.score)}</b><span>survived</span></div>`;
+      list.appendChild(row);
+    }
+  } catch (e) {
+    list.innerHTML = '<p class="hint">Leaderboard is unreachable right now — check back soon.</p>';
   }
 }
 import {
