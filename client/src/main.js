@@ -91,7 +91,8 @@ async function loadBoard() {
 }
 import {
   CHAIN_ENABLED, ARENA_ADDRESS, USDG_ADDRESS,
-  hasWallet, connectWallet, getAccount, fmtUsdg,
+  hasWallet, connectWallet, connectWalletConnect, walletConnectAvailable,
+  getAccount, fmtUsdg,
   getAllowance, approveUsdg, joinOnchain,
   getArenaFacts, getWinners,
 } from './chain.js';
@@ -154,14 +155,15 @@ if (CHAIN_ENABLED) {
 
 $('btn-wallet').addEventListener('click', async () => {
   $('wallet-error').textContent = '';
-  if (!hasWallet()) {
+  const useWC = !hasWallet() && walletConnectAvailable();
+  if (!hasWallet() && !useWC) {
     $('wallet-error').textContent = 'No injected wallet found. Open this site in your wallet app\'s browser (e.g. MetaMask).';
     return;
   }
   $('btn-wallet').disabled = true;
   $('btn-wallet').textContent = 'Connecting…';
   try {
-    myWallet = await connectWallet();
+    myWallet = useWC ? await connectWalletConnect() : await connectWallet();
     $('wallet-addr').textContent = myWallet.slice(0, 6) + '…' + myWallet.slice(-4);
     $('btn-wallet').textContent = 'Connected ✓';
   } catch (e) {

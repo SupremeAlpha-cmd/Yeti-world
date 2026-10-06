@@ -46,6 +46,53 @@ const arenaAbi = parseAbi([
 
 let walletClient = null;
 let publicClient = null;
+
+// ---------- WalletConnect (mobile wallets, no extension needed) ----------
+import EthereumProvider from '@walletconnect/ethereum-provider';
+
+const WC_PROJECT_ID = import.meta.env.VITE_WC_PROJECT_ID;
+let wcProvider = null;
+
+export function walletConnectAvailable() {
+  return !!WC_PROJECT_ID;
+}
+
+export async function connectWalletConnect() {
+  if (!WC_PROJECT_ID) throw new Error('WalletConnect is not configured yet.');
+  if (!wcProvider) {
+    wcProvider = await EthereumProvider.init({
+      projectId: WC_PROJECT_ID,
+      chains: [activeChain.id],
+      showQrModal: true,
+      metadata: {
+        name: 'Yeti World',
+        description: 'The onchain survival arena. Last one standing takes the pot.',
+        url: 'https://yeti-world.site',
+        icons: ['https://yeti-world.site/logo.png'],
+      },
+    });
+  }
+  if (!wcProvider.connected) await wcProvider.connect();
+  const [addr] = wcProvider.accounts;
+  if (!addr) throw new Error('No account returned from wallet.');
+  account = addr;
+  walletClient = createWalletClient({
+    account, chain: activeChain, transport: custom(wcProvider),
+  });
+  publicClient = createPublicClient({
+    chain: activeChain, transport: http(),
+  });
+  return account;
+}
+
+export async function disconnectWallet() {
+  if (wcProvider && wcProvider.connected) {
+    await wcProvider.disconnect();
+    wcProvider = null;
+  }
+  account = null;
+  walletClient = null;
+}
 let account = null;
 
 function getProvider() {
