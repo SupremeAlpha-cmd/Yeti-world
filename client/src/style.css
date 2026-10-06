@@ -62,7 +62,7 @@ html, body {
 
 /* ---------- content pages ---------- */
 .page { width: 100%; max-width: 640px; margin: 0 auto; padding: 40px 20px 64px; }
-.page h2 { font-size: 30px; margin: 0 0 8px; letter-spacing: 1px; text-shadow: 0 3px 0 rgba(6,8,20,.7); }
+.page h2 { font-family: "Titan One", ui-rounded, system-ui, sans-serif; font-size: 30px; margin: 0 0 8px; letter-spacing: 1px; text-shadow: 0 3px 0 rgba(6,8,20,.7); }
 .page h3 { font-size: 19px; margin: 32px 0 12px; text-shadow: 0 2px 0 rgba(6,8,20,.7); }
 .page-sub { color: var(--muted); line-height: 1.6; margin: 0 0 20px; font-size: 15px; }
 .facts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }

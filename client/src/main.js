@@ -1,4 +1,6 @@
 import { GameSocket } from './net.js';
+import { inject } from '@vercel/analytics';
+inject();
 import { createRenderer, ANIMALS, ANIMAL_EMOJI, ANIMAL_COLORS } from './game.js';
 import { sfx, toggleMute, isMuted } from './audio.js';
 import { startDemo, stopDemo, setDemoAnimal, demoTouchHandlers } from './demo.js';
