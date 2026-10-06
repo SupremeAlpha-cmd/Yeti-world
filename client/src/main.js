@@ -153,9 +153,9 @@ if (CHAIN_ENABLED) {
 }
 
 $('btn-wallet').addEventListener('click', async () => {
-  $('home-error').textContent = '';
+  $('wallet-error').textContent = '';
   if (!hasWallet()) {
-    $('home-error').textContent = 'No injected wallet found.';
+    $('wallet-error').textContent = 'No injected wallet found. Open this site in your wallet app\'s browser (e.g. MetaMask).';
     return;
   }
   $('btn-wallet').disabled = true;
@@ -165,7 +165,7 @@ $('btn-wallet').addEventListener('click', async () => {
     $('wallet-addr').textContent = myWallet.slice(0, 6) + '…' + myWallet.slice(-4);
     $('btn-wallet').textContent = 'Connected ✓';
   } catch (e) {
-    $('home-error').textContent = 'Wallet connection failed: ' + (e.message || e);
+    $('wallet-error').textContent = 'Wallet connection failed: ' + (e.message || e);
     $('btn-wallet').disabled = false;
     $('btn-wallet').textContent = 'Connect wallet';
   }
@@ -223,7 +223,7 @@ async function join(opts) {
   // chain mode: wallet must be connected first
   if (CHAIN_ENABLED && !myWallet) {
     if (!hasWallet()) {
-      $('home-error').textContent = 'Connect a wallet first (button above).';
+      $('home-error').textContent = 'Connect your wallet from the home page first.';
       return;
     }
     try {

@@ -44,6 +44,12 @@
           <div class="btn-row">
             <button class="btn primary big" data-view="play">Play now</button>
           </div>
+          <div id="wallet-row" class="join-row hidden">
+            <button id="btn-wallet" class="btn">Connect wallet</button>
+            <span id="wallet-addr" class="hint"></span>
+          </div>
+          <p id="home-hint" class="hint"></p>
+          <p id="wallet-error" class="error"></p>
         </div>
 
         <h2>How it works</h2>
@@ -103,10 +109,6 @@
           <h1>YETI&nbsp;WORLD</h1>
           <p class="tagline">Pick your animal. Dodge the memecoins.<br />Last one standing takes the pot.</p>
           <input id="name-input" maxlength="16" placeholder="Your name" autocomplete="off" />
-          <div id="wallet-row" class="join-row hidden">
-            <button id="btn-wallet" class="btn">Connect wallet</button>
-            <span id="wallet-addr" class="hint"></span>
-          </div>
           <div class="btn-row">
             <button id="btn-quick" class="btn primary">Quick match</button>
           </div>
