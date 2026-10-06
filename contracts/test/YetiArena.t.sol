@@ -82,12 +82,13 @@ contract YetiArenaTest is Test {
     address carol = address(0xCA0);
 
     uint256 constant ENTRY = 20_000_000; // $20
+    uint256 constant MIN_FEE = 10_000_000; // $10 minimum
 
     function setUp() public {
         usdg = new MockUSDG();
         bonus = new MockBonus();
         vm.prank(owner);
-        arena = new YetiArena(address(usdg), treasury, referee);
+        arena = new YetiArena(address(usdg), treasury, referee, MIN_FEE);
         // fund players
         usdg.mint(alice, 1_000_000_000);
         usdg.mint(bob, 1_000_000_000);
@@ -118,8 +119,25 @@ contract YetiArenaTest is Test {
 
     function testCreateLobbyZeroFeeReverts() public {
         vm.prank(alice);
-        vm.expectRevert("fee zero");
+        vm.expectRevert("fee below min");
         arena.createLobby(0);
+    }
+
+    function testCreateLobbyDustFeeReverts() public {
+        vm.prank(alice);
+        vm.expectRevert("fee below min");
+        arena.createLobby(1); // 1 wei dust lobby — bonus farm attempt
+    }
+
+    function testCreateLobbyMinFeeOk() public {
+        vm.prank(alice);
+        uint256 id = arena.createLobby(MIN_FEE);
+        // lobby exists and accepts joins at the minimum fee
+        vm.prank(alice);
+        usdg.approve(address(arena), MIN_FEE);
+        vm.prank(alice);
+        arena.join(id);
+        assertEq(arena.lobbyPlayers(id).length, 1);
     }
 
     function testJoinPaysEntryAndGrowsPot() public {
@@ -236,6 +254,23 @@ contract YetiArenaTest is Test {
         vm.prank(referee);
         arena.declareWinner(id, alice); // must not revert
         assertEq(bonus.balanceOf(alice), 0);
+    }
+
+    function testDryBonusReserveDoesNotBrickPayout() public {
+        uint256 perWin = 4_000 ether;
+        // bonus configured but reserve NOT funded — dry
+        vm.prank(owner);
+        arena.setBonus(address(bonus), perWin);
+
+        vm.prank(alice);
+        uint256 id = arena.createLobby(ENTRY);
+        _joinTwo(id);
+        uint256 bobBefore = usdg.balanceOf(bob);
+        vm.prank(referee);
+        arena.declareWinner(id, bob); // must not revert
+        // 95% of 2x ENTRY prize still paid
+        assertEq(usdg.balanceOf(bob) - bobBefore, (2 * ENTRY * 9_500) / 10_000, "prize paid despite dry bonus");
+        assertEq(bonus.balanceOf(bob), 0, "no bonus when reserve dry");
     }
 
     function testCancelRefundsAll() public {

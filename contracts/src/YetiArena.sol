@@ -21,6 +21,9 @@ contract YetiArena {
     address public treasury;
     address public referee;
     address public owner;
+    // Minimum USDG entry fee per lobby (6 decimals). Kills dust-fee lobbies
+    // that would farm the fixed YETI bonus at near-zero cost.
+    uint256 public immutable minEntryFee;
 
     // Optional bonus token (e.g. VIPER or a future YETI): fixed amount per win.
     IERC20 public bonusToken;
@@ -55,17 +58,18 @@ contract YetiArena {
         _;
     }
 
-    constructor(address _usdg, address _treasury, address _referee) {
+    constructor(address _usdg, address _treasury, address _referee, uint256 _minEntryFee) {
         require(_usdg != address(0) && _treasury != address(0) && _referee != address(0), "zero addr");
         usdg = IERC20(_usdg);
         treasury = _treasury;
         referee = _referee;
         owner = msg.sender;
+        minEntryFee = _minEntryFee;
     }
 
     /// @notice Create a lobby with a fixed USDG entry fee. Returns the lobby id.
     function createLobby(uint256 entryFee) external returns (uint256) {
-        require(entryFee > 0, "fee zero");
+        require(entryFee >= minEntryFee, "fee below min");
         uint256 id = nextLobbyId++;
         Lobby storage l = lobbies[id];
         l.entryFee = entryFee;
@@ -79,10 +83,11 @@ contract YetiArena {
         require(l.entryFee > 0, "no lobby");
         require(!l.resolved, "resolved");
         require(!l.entered[msg.sender], "already in");
-        require(usdg.transferFrom(msg.sender, address(this), l.entryFee), "pay failed");
+        // CEI: state changes before the external token call.
         l.entered[msg.sender] = true;
         l.players.push(msg.sender);
         l.pot += l.entryFee;
+        require(usdg.transferFrom(msg.sender, address(this), l.entryFee), "pay failed");
         emit Joined(lobbyId, msg.sender, l.pot);
     }
 
@@ -98,8 +103,13 @@ contract YetiArena {
         uint256 prize = l.pot - fee;
         require(usdg.transfer(treasury, fee), "fee xfer failed");
         require(usdg.transfer(winner, prize), "prize xfer failed");
+        // Bonus must never brick the USDG payout: pay what's available.
         if (address(bonusToken) != address(0) && bonusPerWin > 0) {
-            require(bonusToken.transfer(winner, bonusPerWin), "bonus xfer failed");
+            uint256 available = bonusToken.balanceOf(address(this));
+            uint256 toPay = available < bonusPerWin ? available : bonusPerWin;
+            if (toPay > 0) {
+                require(bonusToken.transfer(winner, toPay), "bonus xfer failed");
+            }
         }
         emit WinnerDeclared(lobbyId, winner, prize, fee);
     }

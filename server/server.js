@@ -197,7 +197,7 @@ function addPlayer(room, ws, name, wallet) {
   const id = 'p' + (nextPlayerNum++);
   const animal = ANIMALS[[...room.players.values()].length % ANIMALS.length];
   const p = {
-    id, ws, room, name: (name || 'Player').slice(0, 16) || 'Player',
+    id, ws, room, name: (typeof name === 'string' && name.trim() ? name.trim().slice(0, 16) : 'Player'),
     animal, x: ARENA.w / 2, y: ARENA.h - 80, alive: true,
     input: { dx: 0, dy: 0, tx: null, ty: null, touch: false },
     color: ANIMAL_COLORS[animal],
@@ -497,7 +497,14 @@ const server = http.createServer((req, res) => {
     res.end(JSON.stringify({ ok: true, rooms: rooms.size }));
     return;
   }
-  let p = decodeURIComponent(req.url.split('?')[0]);
+  let p;
+  try {
+    p = decodeURIComponent(req.url.split('?')[0]);
+  } catch {
+    res.writeHead(400);
+    res.end('Bad Request');
+    return;
+  }
   if (p === '/') p = '/index.html';
   const file = path.normalize(path.join(DIST, p));
   if (!file.startsWith(DIST)) { res.writeHead(403); res.end(); return; }
